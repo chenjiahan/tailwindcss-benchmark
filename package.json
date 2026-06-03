@@ -1,0 +1,31 @@
+{
+  "name": "tailwindcss-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "generate": "node scripts/generate-fixture.mjs",
+    "dev:plugin": "rsbuild dev --config rsbuild.plugin.config.ts",
+    "dev:postcss": "rsbuild dev --config rsbuild.postcss.config.ts",
+    "build:plugin": "rsbuild build --config rsbuild.plugin.config.ts",
+    "build:postcss": "rsbuild build --config rsbuild.postcss.config.ts",
+    "benchmark": "node scripts/benchmark.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@rsbuild/core": "2.0.11",
+    "@rsbuild/plugin-react": "2.0.1",
+    "@rsbuild/plugin-tailwindcss": "2.0.1",
+    "@tailwindcss/postcss": "4.3.0",
+    "@types/react": "19.2.16",
+    "@types/react-dom": "19.2.3",
+    "tailwindcss": "4.3.0",
+    "typescript": "6.0.3"
+  }
+}
+
