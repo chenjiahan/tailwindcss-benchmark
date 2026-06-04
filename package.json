@@ -7,8 +7,10 @@
   "scripts": {
     "generate": "node scripts/generate-fixture.mjs",
     "dev:plugin": "rsbuild dev --config rsbuild.plugin.config.ts",
+    "dev:plugin:optimize": "rsbuild dev --config rsbuild.plugin.optimize.config.ts",
     "dev:postcss": "rsbuild dev --config rsbuild.postcss.config.ts",
     "build:plugin": "rsbuild build --config rsbuild.plugin.config.ts",
+    "build:plugin:optimize": "rsbuild build --config rsbuild.plugin.optimize.config.ts",
     "build:postcss": "rsbuild build --config rsbuild.postcss.config.ts",
     "benchmark": "node scripts/benchmark.mjs",
     "typecheck": "tsc --noEmit"
@@ -28,4 +30,3 @@
     "typescript": "6.0.3"
   }
 }
-

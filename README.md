@@ -2,9 +2,10 @@
 
 This repository contains an Rsbuild React benchmark that compares Tailwind CSS v4 integration through `@rsbuild/plugin-tailwindcss` and `@tailwindcss/postcss`.
 
-The app code is identical for both runs. The only difference is the Rsbuild config:
+The app code is identical for all measured integrations. The only difference is the Rsbuild config:
 
 - `rsbuild.plugin.config.ts` uses `@rsbuild/plugin-tailwindcss`.
+- `rsbuild.plugin.optimize.config.ts` uses `@rsbuild/plugin-tailwindcss` with `optimize: true`.
 - `rsbuild.postcss.config.ts` uses `@tailwindcss/postcss` through `tools.postcss`.
 
 Lower numbers are better.
@@ -13,22 +14,31 @@ Lower numbers are better.
 
 Measured on 2026-06-04.
 
-| Metric | `@rsbuild/plugin-tailwindcss` mean | `@tailwindcss/postcss` mean | Faster |
-| --- | ---: | ---: | --- |
-| Production build | 13,786 ms | 11,199 ms | `@tailwindcss/postcss` by 18.8% |
-| Dev cold start | 983 ms | 1,210 ms | `@rsbuild/plugin-tailwindcss` by 18.8% |
-| Dev rebuild | 575 ms | 795 ms | `@rsbuild/plugin-tailwindcss` by 27.7% |
+| Metric | `@rsbuild/plugin-tailwindcss` mean | `@rsbuild/plugin-tailwindcss` with `optimize: true` mean | `@tailwindcss/postcss` mean | Fastest |
+| --- | ---: | ---: | ---: | --- |
+| Production build | 13,786 ms | 10,397 ms | 11,199 ms | `@rsbuild/plugin-tailwindcss` with `optimize: true` |
+| Dev cold start | 983 ms | 10,395 ms | 1,210 ms | `@rsbuild/plugin-tailwindcss` |
+| Dev rebuild | 575 ms | 20,683 ms | 795 ms | `@rsbuild/plugin-tailwindcss` |
+
+Against the default `@rsbuild/plugin-tailwindcss` configuration, `optimize: true` made the production build 24.6% faster. It also made dev cold start about 10.6x slower and dev rebuilds about 36.0x slower.
+
+Against `@tailwindcss/postcss`, `optimize: true` was 7.2% faster for production build, about 8.6x slower for dev cold start, and about 26.0x slower for dev rebuilds.
 
 Samples:
 
 | Integration | Build samples | Dev samples | Rebuild samples |
 | --- | --- | --- | --- |
 | `@rsbuild/plugin-tailwindcss` | 14,240 / 14,091 / 13,027 ms | 1,019 / 993 / 938 ms | 474 / 516 / 565 / 618 / 710 / 496 / 509 / 538 / 606 / 693 / 478 / 523 / 610 / 630 / 654 ms |
+| `@rsbuild/plugin-tailwindcss` with `optimize: true` | 10,435 / 10,205 / 10,549 ms | 10,722 / 10,309 / 10,153 ms | 13,432 / 17,602 / 20,151 / 24,515 / 29,166 / 12,769 / 16,670 / 20,382 / 24,821 / 29,460 / 12,837 / 16,298 / 19,519 / 24,011 / 28,615 ms |
 | `@tailwindcss/postcss` | 11,120 / 11,044 / 11,432 ms | 1,214 / 1,213 / 1,203 ms | 694 / 716 / 779 / 896 / 943 / 697 / 731 / 781 / 870 / 978 / 671 / 708 / 748 / 821 / 894 ms |
 
 ## Interpretation
 
-In this synthetic fixture, `@tailwindcss/postcss` was faster for the full production build, while `@rsbuild/plugin-tailwindcss` was faster for dev-server startup and Tailwind-class rebuilds.
+In this synthetic fixture, `@tailwindcss/postcss` was faster than the default `@rsbuild/plugin-tailwindcss` configuration for the full production build, while the default `@rsbuild/plugin-tailwindcss` configuration was faster for dev-server startup and Tailwind-class rebuilds.
+
+Enabling `optimize: true` on `@rsbuild/plugin-tailwindcss` changed the production build result: it was the fastest production build configuration in this fixture. This measures the overlapping optimization case, because Rsbuild's built-in Lightning CSS optimization is still enabled. The Rsbuild documentation recommends enabling the plugin's `optimize` option mainly when Rsbuild's built-in Lightning CSS optimization is disabled.
+
+The cost showed up in development. With `optimize: true`, Tailwind's optimization work also ran on dev startup and each rebuild in this fixture, turning the default plugin's sub-second rebuilds into 13-29 second rebuild samples. For this benchmark, `optimize: true` is useful only for comparing production-build behavior; it is not a good default for dev/rebuild performance.
 
 The build metric is end-to-end wall-clock time for `rsbuild build`, not an isolated Tailwind transform benchmark. It includes TypeScript/JSX compilation, CSS extraction, Tailwind generation, CSS minimization, asset writing, and Rsbuild/Rspack process overhead.
 
@@ -68,12 +78,20 @@ The benchmark script performs:
 2. Three dev-server cold starts per integration, measuring from process spawn to the first successful `ready built in ...` output.
 3. Five rebuilds inside each dev-server run, rewriting `src/benchmark/rebuild-target.tsx` with a new deterministic class surface and measuring until the next successful compile.
 
+You can run a subset of integrations with `BENCH_INTEGRATIONS`:
+
+```bash
+BENCH_INTEGRATIONS=plugin-tailwindcss-optimize pnpm benchmark
+```
+
 Manual commands:
 
 ```bash
 pnpm build:plugin
+pnpm build:plugin:optimize
 pnpm build:postcss
 pnpm dev:plugin
+pnpm dev:plugin:optimize
 pnpm dev:postcss
 ```
 
@@ -92,4 +110,5 @@ pnpm dev:postcss
 ## References
 
 - [Rsbuild Tailwind CSS v4 documentation](https://rsbuild.rs/guide/styling/tailwindcss)
+- [Rsbuild Tailwind CSS plugin `optimize` option](https://rsbuild.rs/plugins/list/plugin-tailwindcss#optimize)
 - [Rsbuild `tools.postcss` documentation](https://rsbuild.rs/config/tools/postcss)

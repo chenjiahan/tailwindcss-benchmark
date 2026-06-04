@@ -12,13 +12,25 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const iterations = Number(process.env.BENCH_ITERATIONS ?? 3);
 const rebuildIterations = Number(process.env.BENCH_REBUILD_ITERATIONS ?? 5);
+const integrationFilter = new Set(
+  (process.env.BENCH_INTEGRATIONS ?? '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean),
+);
 
-const integrations = [
+const allIntegrations = [
   {
     key: 'plugin-tailwindcss',
     label: '@rsbuild/plugin-tailwindcss',
     config: 'rsbuild.plugin.config.ts',
     port: 4321,
+  },
+  {
+    key: 'plugin-tailwindcss-optimize',
+    label: '@rsbuild/plugin-tailwindcss (optimize: true)',
+    config: 'rsbuild.plugin.optimize.config.ts',
+    port: 4331,
   },
   {
     key: 'postcss',
@@ -27,6 +39,17 @@ const integrations = [
     port: 4322,
   },
 ];
+
+const integrations =
+  integrationFilter.size === 0
+    ? allIntegrations
+    : allIntegrations.filter((integration) => integrationFilter.has(integration.key));
+
+if (integrations.length === 0) {
+  throw new Error(
+    `No integrations matched BENCH_INTEGRATIONS=${process.env.BENCH_INTEGRATIONS}`,
+  );
+}
 
 const stripAnsi = (value) =>
   value.replace(/\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g, '');

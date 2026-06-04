@@ -3,7 +3,7 @@ import type { RsbuildConfig } from '@rsbuild/core';
 const port = process.env.PORT ? Number(process.env.PORT) : undefined;
 
 export const createSharedConfig = (
-  integration: 'plugin-tailwindcss' | 'postcss',
+  integration: 'plugin-tailwindcss' | 'plugin-tailwindcss-optimize' | 'postcss',
 ): RsbuildConfig => ({
   source: {
     entry: {
@@ -29,4 +29,3 @@ export const createSharedConfig = (
     printFileSize: false,
   },
 });
-
