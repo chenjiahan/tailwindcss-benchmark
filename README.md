@@ -40,6 +40,19 @@ Enabling `optimize: true` on `@rsbuild/plugin-tailwindcss` changed the productio
 
 The cost showed up in development. With `optimize: true`, Tailwind's optimization work also ran on dev startup and each rebuild in this fixture, turning the default plugin's sub-second rebuilds into 13-29 second rebuild samples. For this benchmark, `optimize: true` is useful only for comparing production-build behavior; it is not a good default for dev/rebuild performance.
 
+## Rspack Core Override Check
+
+The main result table was first measured with `@rspack/core@2.0.6`, which was the version resolved by `@rsbuild/core@2.0.11`. To check whether Lightning CSS minification was faster in an older Rspack release, the repository now pins `@rspack/core` to `2.0.3` through `pnpm.overrides`.
+
+Only the default `@rsbuild/plugin-tailwindcss` production build was measured for this check, because this is the path where the large generated CSS reaches Rsbuild/Rspack's built-in Lightning CSS minifier.
+
+| `@rspack/core` | Rsbuild reported build samples | Wall-clock samples | Wall-clock mean |
+| --- | --- | --- | ---: |
+| 2.0.6 | 12.7 / 12.6 / 12.9 s | 13.09 / 12.97 / 13.25 s | 13.10 s |
+| 2.0.3 override | 12.7 / 12.7 / 12.9 / 12.7 / 12.7 / 12.9 s | 14.89 / 13.00 / 13.19 / 12.96 / 12.95 / 13.23 s | 13.37 s |
+
+The first `2.0.3` wall-clock sample had external startup noise; excluding it gives a 13.07 s wall-clock mean. The Rsbuild-reported build time is still effectively unchanged. This benchmark does not show a Lightning CSS minification speedup from downgrading `@rspack/core` from `2.0.6` to `2.0.3`.
+
 The build metric is end-to-end wall-clock time for `rsbuild build`, not an isolated Tailwind transform benchmark. It includes TypeScript/JSX compilation, CSS extraction, Tailwind generation, CSS minimization, asset writing, and Rsbuild/Rspack process overhead.
 
 The dev rebuild metric is closer to the Tailwind integration path because the runner rewrites an imported module that contains a large deterministic Tailwind class surface, then waits for the next dev compile to complete.
@@ -104,6 +117,7 @@ pnpm dev:postcss
 - `@rsbuild/core`: 2.0.11.
 - `@rsbuild/plugin-react`: 2.0.1.
 - `@rsbuild/plugin-tailwindcss`: 2.0.1.
+- `@rspack/core`: 2.0.3, pinned through `pnpm.overrides`.
 - `tailwindcss`: 4.3.0.
 - `@tailwindcss/postcss`: 4.3.0.
 
