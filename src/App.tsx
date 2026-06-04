@@ -1,7 +1,7 @@
 import {
   BenchmarkForest,
   benchmarkStats,
-} from './benchmark/generated-components';
+} from './benchmark/generated';
 import { RebuildTarget, rebuildToken } from './benchmark/rebuild-target';
 
 export function App() {
@@ -55,4 +55,3 @@ export function App() {
     </main>
   );
 }
-
